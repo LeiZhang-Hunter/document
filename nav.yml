@@ -2,7 +2,7 @@ nav:
 
   - 快速上手:
       - Overview: getting-started/overview.md
-      - 核心概念1: getting-started/intro/core-concept.md
+      - 核心概念: getting-started/intro/core-concept.md
       - 快速上手:
           - Overview: getting-started/quick-start/quick-start.md
           - Kubernetes环境: getting-started/quick-start/kubernetes.md
@@ -13,38 +13,32 @@ nav:
 
   - 用户指南:
       - Overview: user-guide/index.md
-      - 架构与特性:
-          - 诞生背景: user-guide/architecture/background.md
-          - 设计架构: user-guide/architecture/core-arch.md
-          - 数据格式: user-guide/architecture/schema.md
-          - 优势与特性: user-guide/architecture/advantages.md
-          - 开源项目对比: user-guide/architecture/compare.md
-
-      - Kubernetes:
-          - Kubernetes下的日志采集: user-guide/use-in-kubernetes/general-usage.md
-          - Loggie采集容器日志: user-guide/use-in-kubernetes/collect-container-logs.md
-          - Loggie采集Node日志: user-guide/use-in-kubernetes/collect-node-logs.md
-          - Sidecar方式采集日志: user-guide/use-in-kubernetes/sidecar.md
-          - 采集Kubernetes Events: user-guide/use-in-kubernetes/kube-event-source.md
-
-      - 最佳实践:
-          - 日志rotate和日志采集: user-guide/best-practice/log-collect-rotate.md
-          - 日志格式与元信息字段: user-guide/best-practice/log-enrich.md
-          - 日志切分处理: user-guide/best-practice/log-process.md
-          - 使用Loggie中转机: user-guide/best-practice/aggregator.md
-          - 自适应sink流量控制: user-guide/best-practice/concurrency.md
-
-      - 监控报警:
-          - Loggie的监控与报警: user-guide/monitor/loggie-monitor.md
-          - 日志报警: user-guide/monitor/service-log-alarm.md
-
-      - 企业实战:
-          - 日志系统架构与演进: user-guide/enterprise-practice/architecture-and-evolution.md
-          - 使用阿里云可观测统一存储SLS: user-guide/enterprise-practice/sls.md
-
-      - 运维排障:
-          - 日志采集快速排障指南: user-guide/troubleshot/log-collection.md
-          - 问题案例: user-guide/troubleshot/problems.md
+      - 系统设置:
+          - 部门管理: user-guide/front/setting/dep.md
+          - 菜单管理: user-guide/front/setting/menu.md
+#      - Kubernetes:
+#          - Kubernetes下的日志采集: user-guide/use-in-kubernetes/general-usage.md
+#          - Nova采集容器数据: user-guide/use-in-kubernetes/collect-container-logs.md
+#          - Nova采集传统主机数据: user-guide/use-in-kubernetes/collect-node-logs.md
+#
+#      - 最佳实践:
+#          - 日志rotate和日志采集: user-guide/best-practice/log-collect-rotate.md
+#          - 日志格式与元信息字段: user-guide/best-practice/log-enrich.md
+#          - 日志切分处理: user-guide/best-practice/log-process.md
+#          - 使用Loggie中转机: user-guide/best-practice/aggregator.md
+#          - 自适应sink流量控制: user-guide/best-practice/concurrency.md
+#
+#      - 监控报警:
+#          - Loggie的监控与报警: user-guide/monitor/loggie-monitor.md
+#          - 日志报警: user-guide/monitor/service-log-alarm.md
+#
+#      - 企业实战:
+#          - 日志系统架构与演进: user-guide/enterprise-practice/architecture-and-evolution.md
+#          - 使用阿里云可观测统一存储SLS: user-guide/enterprise-practice/sls.md
+#
+#      - 运维排障:
+#          - 日志采集快速排障指南: user-guide/troubleshot/log-collection.md
+#          - 问题案例: user-guide/troubleshot/problems.md
 
   - 组件配置:
       - Overview: reference/index.md
@@ -63,11 +57,11 @@ nav:
               - 网络: reference/trace-agent/report/network.md
               - 进程: reference/trace-agent/report/process.md
       - NovaServer:
-          - 简介: reference/global/monitor.md
-          - 构建: reference/global/discovery.md
-          - 配置: reference/global/reload.md
-          - http: reference/global/defaults.md
-          - grpc: reference/global/http.md
+          - 简介: reference/nova-server/overview.md
+          - 构建: reference/nova-server/build.md
+          - 配置: reference/nova-server/config.md
+          - http: reference/nova-server/http.md
+          - grpc: reference/nova-server/grpc.md
 
   - 开发手册:
       - golang代码规范:  developer-guide/code/coding-guide.md

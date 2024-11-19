@@ -2,7 +2,7 @@ INHERIT: nav.yml
 
 site_name: ' '
 repo_url: https://github.com/loggie-io/loggie
-repo_name: loggie-io/loggie
+repo_name: nova-io/nova
 site_description: Nova Documentation
 extra_css:
   - stylesheets/extra.css
