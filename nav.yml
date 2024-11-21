@@ -13,9 +13,14 @@ nav:
 
   - 用户指南:
       - Overview: user-guide/index.md
+      - 基础设施监控:
+        - 主机: user-guide/front/monitor/host.md
+        - 进程: user-guide/front/monitor/process.md
       - 系统设置:
-          - 部门管理: user-guide/front/setting/dep.md
-          - 菜单管理: user-guide/front/setting/menu.md
+        - 用户管理: user-guide/front/setting/user.md
+        - 角色管理: user-guide/front/setting/role.md
+        - 部门管理: user-guide/front/setting/dep.md
+        - 菜单管理: user-guide/front/setting/menu.md
 #      - Kubernetes:
 #          - Kubernetes下的日志采集: user-guide/use-in-kubernetes/general-usage.md
 #          - Nova采集容器数据: user-guide/use-in-kubernetes/collect-container-logs.md
