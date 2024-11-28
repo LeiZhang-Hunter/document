@@ -33,9 +33,4 @@
 ![Nova-bot](imgs/nova-bot.png)
 
 ## :globe_with_meridians: 参与
-如果你对Nova的具体实现感兴趣，想参与Nova开源的研发？想自研插件？请看「[开发手册](../developer-guide/contributing.md)」。
-
-## 链接
-
-- [trace-agent](trace-agent/index.md)
-- [watchermen](watchermen/index.md)
+如果你对Nova的具体实现感兴趣，想参与Nova开源的研发？想自研插件？请看「[开发手册](../developer-guide/contributing.md)」。  
