@@ -1,7 +1,7 @@
 nav:
 
   - 快速上手:
-      - Overview: getting-started/overview.md
+      - Overview: index.md
       - 核心概念: getting-started/intro/core-concept.md
       - 快速上手:
           - Overview: getting-started/quick-start/quick-start.md
