@@ -1,6 +1,6 @@
 # Kubernetes部署
 
-## 部署Loggie DaemonSet
+## 部署Nova
 
 请确保本地有kubectl和helm可执行命令。
 
@@ -10,97 +10,71 @@
 ### 下载helm-chart包
 
 ```bash
-helm pull https://github.com/loggie-io/installation/releases/download/v1.2.0/loggie-v1.2.0.tgz && tar xvzf loggie-v1.2.0.tgz
+helm pull https://github.com/nova-io/installa tion/releases/download/v1.2.0/nova-v1.2.0.tgz && tar xvzf nova-v1.2.0.tgz
 ```
 
 ### 修改配置
 进入chart目录：
 ```bash
-cd installation/helm-chart
+cd installation/nova
 ```
 
 查看values.yml，并根据实际情况进行修改。  
 
 目前可配置的参数如下所示：
 
-#### 镜像
+### NovaServer
+
+#### NovaServer镜像
 ```yaml
-image: hub.c.163.com/loggie/loggie:v1.2.0
+server:
+  image: "docker.1panel.live/aronic/trace-agent:20241214-8"
 ```
-loggie的镜像。
+NovaServer的镜像。
 
 #### 资源
 ```yaml
-resources:
-  limits:
-    cpu: 2
-    memory: 2Gi
-  requests:
-    cpu: 100m
-    memory: 100Mi
+server:
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 100m
+        memory: 100Mi
 ```
-Loggie Agent的limit/request资源，可以根据实际情况修改。  
+nova Agent的limit/request资源，可以根据实际情况修改。
 
 #### 额外启动参数
 ```yaml
-extraArgs: {}
+server:
+  extraArgs: {}
 ```
-Loggie的额外启动参数，比如希望修改配置使用debug的日志级别，不使用json格式的日志打印形式，可以修改为:
+nova的额外启动参数，比如希望修改配置使用debug的日志级别，不使用json格式的日志打印形式，可以修改为:
 ```yaml
-extraArgs:
-  log.level: debug
-  log.jsonFormat: false
+server:
+    extraArgs:
+      log.level: debug
+      log.jsonFormat: false
 ```
-
-#### 额外挂载
-```yaml
-extraVolumeMounts:
-  - mountPath: /var/log/pods
-    name: podlogs
-  - mountPath: /var/lib/kubelet/pods
-    name: kubelet
-  - mountPath: /var/lib/docker
-    name: docker
-
-
-extraVolumes:
-  - hostPath:
-      path: /var/log/pods
-      type: DirectoryOrCreate
-    name: podlogs
-  - hostPath:
-      path: /var/lib/kubelet/pods
-      type: DirectoryOrCreate
-    name: kubelet
-  - hostPath:
-      path: /var/lib/docker
-      type: DirectoryOrCreate
-    name: docker
-```
-建议根据实际情况默认挂载以上目录。  
-
-- Loggie需要记录采集的文件状态(offset等)，避免重启后从头开始采集文件，造成日志采集重复，默认挂载路径为/data/loggie.db，所以挂载了`/data/loggie--{{ template "loggie.name" . }}`目录。
-- 如果业务Pod使用hostPath挂载日志到节点，需要Loggie挂载相同的路径。  
-- 因为Loggie需要采集容器标准输出的路径，所以需要从节点/var/lib/docker或者/var/log/pods下采集日志，如果环境中部署的docker修改了该路径，请同步修改该挂载路径。如果非docker运行时，比如使用containerd，无需挂载/var/lib/docker，Loggie会从/var/log/pods中寻找实际的标准输出路径。  
-- 如果业务Pod使用emtpyDir挂载日志到节点，默认emtpyDir会在节点的/var/lib/kubelet/pods路径下，所以需要Loggie挂载该路径。如果环境的kubelet修改了该路径配置，这里需要同步修改。  
-
 
 #### 调度
 ```yaml
-nodeSelector: {}
-
-affinity: {}
-# podAntiAffinity:
-#   requiredDuringSchedulingIgnoredDuringExecution:
-#   - labelSelector:
-#       matchExpressions:
-#       - key: app
-#         operator: In
-#         values:
-#         - loggie
-#     topologyKey: "kubernetes.io/hostname"
+server:
+    nodeSelector: {}
+    
+    affinity: {}
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #   - labelSelector:
+    #       matchExpressions:
+    #       - key: app
+    #         operator: In
+    #         values:
+    #         - nova
+    #     topologyKey: "kubernetes.io/hostname"
 ```
-可使用nodeSelector和affinity来控制Loggie Pod的调度，具体请参考Kubernetes文档。  
+可使用nodeSelector和affinity来控制novaServer Pod的调度，具体请参考Kubernetes文档。
 
 ```yaml
 tolerations: []
@@ -109,127 +83,301 @@ tolerations: []
 # - effect: NoSchedule
 #   operator: Exists
 ```
-如果节点有自己的taints，会导致Loggie Pod无法调度到该节点，如果需要忽略taints，可以加上对应的tolerations。
+如果节点有自己的taints，会导致nova Pod无法调度到该节点，如果需要忽略taints，可以加上对应的tolerations。
 
 #### 更新策略
 ```yaml
 updateStrategy:
   type: RollingUpdate
 ```
-可为`RollingUpdate`或者`OnDelete`。  
+可为`RollingUpdate`或者`OnDelete`。
 
 #### 全局配置
 ```yaml
-config:
-  loggie:
-    reload:
-      enabled: true
-      period: 10s
-    monitor:
-      logger:
-        period: 30s
-        enabled: true
-      listeners:
-        filesource: ~
-        filewatcher: ~
-        reload: ~
-        sink: ~
-    discovery:
-      enabled: true
-      kubernetes:
-        containerRuntime: containerd
-        fields:
-          container.name: containername
-          logConfig: logconfig
-          namespace: namespace
-          node.name: nodename
-          pod.name: podname
-    http:
-      enabled: true
-      port: 9196
+  app:
+  aes_key: "6c84fb94eb046c0876f98777be46d6be"
+  debug: true
+  server:
+    address: ":8080"
+    openapiPath: "/api.json"
+    swaggerPath: "/swagger"
+  grpc:
+    address: ":10050"
+    server_list:
+      - 127.0.0.1:10051
+      - 127.0.0.1:10052
+      - 127.0.0.1:10053
+
+  closeToken: true
+  logger:
+    level: "all"
+    stdout: true
+
+  database:
+    default:
+      link:    "mysql:root:root@tcp(localhost:3306)/deep_observe?loc=Local&parseTime=true"
+      charset: "utf8mb4"
+      debug: "true"
+      dryRun: "false"
+      maxIdle:  "10"
+      maxOpen:  "10"
+      maxLifetime:  "30"
+      type: mysql
+    clickhouse:
+      link: "clickhouse:default:asd1234567@@tcp(81.71.98.26:9090)/otel"
+      debug: true
+
+  trace-database:
+    username: "default"
+    password: "asd1234567@"
+    database: "otel"
+    type: "clickhouse"
+    networks:
+      - host: "localhost"
+        port: 9090
 ```
 具体参数说明可参考[组件配置](../../reference/index.md)。
-需要注意的是，如果你在本地使用Kind等工具部署Kubernetes，Kind默认会使用containerd runtime，此时需要在discovery.kubernetes中增加        `containerRuntime: containerd`，指定容器运行时。  
 
 
 #### service
-如果Loggie希望接收其他服务发送的数据，需要将自身的服务通过service暴露出来。  
+如果novaServer希望接收其他服务发送的数据，需要将自身的服务通过service暴露出来。
 
-正常情况下，使用Agent模式的Loggie只需要暴露自身管理端口。  
+正常情况下，使用Agent模式的nova只需要暴露自身管理端口。
 
 ```yaml
-servicePorts:
-  - name: monitor
-    port: 9196
-    targetPort: 9196
+server:
+    servicePorts:
+      - name: nova-server
+        port: 8080
+        targetPort: 8080
 ```
 
-### 部署
+### NovaAgent
 
-初次部署，我们指定部署在`loggie` namespace下，并让helm自动创建该namespace。
+#### NovaAgent镜像
+NovaTrace 和 NovaCollector 共同使用同一个镜像。
+```yaml
+agent:
+  image: "docker.1panel.live/aronic/trace-agent:20241214-8"
+```
+NovaAgent的镜像。
+
+
+#### NovaTrace
+
+##### 资源
+```yaml
+trace:
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+```
+nova Agent的limit/request资源，可以根据实际情况修改。
+
+##### 额外启动参数
+```yaml
+trace:
+  extraArgs: {}
+```
+nova的额外启动参数，比如希望修改配置使用debug的日志级别，不使用json格式的日志打印形式，可以修改为:
+```yaml
+trace:
+    extraArgs:
+      log.level: debug
+      log.jsonFormat: false
+```
+
+##### 调度
+```yaml
+trace:
+    nodeSelector: {}
+    
+    affinity: {}
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #   - labelSelector:
+    #       matchExpressions:
+    #       - key: app
+    #         operator: In
+    #         values:
+    #         - nova
+    #     topologyKey: "kubernetes.io/hostname"
+```
+可使用nodeSelector和affinity来控制novaServer Pod的调度，具体请参考Kubernetes文档。
+
+```yaml
+trace:
+  tolerations: []
+# - effect: NoExecute
+#   operator: Exists
+# - effect: NoSchedule
+#   operator: Exists
+```
+如果节点有自己的taints，会导致nova Pod无法调度到该节点，如果需要忽略taints，可以加上对应的tolerations。
+
+##### 更新策略
+```yaml
+trace:
+    updateStrategy:
+      type: RollingUpdate
+```
+可为`RollingUpdate`或者`OnDelete`。
+
+##### Trace全局配置
+```yaml
+{
+  "cluster": "default",
+  "company_uuid": "e902c1e84b9f9b12bdf22936603acfda",
+  "node_report_addr": {
+    "host": "81.71.98.26",
+    "port": 10050
+  },
+  "sampling_period": 2,
+  "oltp_exporter_addr": {
+    "host": "81.71.98.26",
+    "port": 4317
+  },
+  "k8s_cri_unix_domain_socket": "/run/containerd/containerd.sock",
+  "log_level": "debug",
+  "log_file": "/tmp/trace-agent.log",
+  "prometheus_exposer_addr": "0.0.0.0:8000"
+}
+```
+具体参数说明可参考[组件配置](../../reference/index.md)。
+
+
+##### service
+如果novaServer希望接收其他服务发送的数据，需要将自身的服务通过service暴露出来。
+
+正常情况下，使用Agent模式的nova只需要暴露自身管理端口。
+
+```yaml
+trace:
+    servicePorts:
+      - name: nova-trace-agent
+        port: 11800
+        targetPort: 11800
+```
+
+#### NovaCollector
+
+##### 资源
+```yaml
+collector:
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+```
+nova Agent的limit/request资源，可以根据实际情况修改。
+
+##### 额外启动参数
+```yaml
+collector:
+  extraArgs: {}
+```
+nova的额外启动参数，比如希望修改配置使用debug的日志级别，不使用json格式的日志打印形式，可以修改为:
+```yaml
+collector:
+    extraArgs:
+      log.level: debug
+      log.jsonFormat: false
+```
+
+##### 调度
+```yaml
+collector:
+    nodeSelector: {}
+    
+    affinity: {}
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #   - labelSelector:
+    #       matchExpressions:
+    #       - key: app
+    #         operator: In
+    #         values:
+    #         - nova
+    #     topologyKey: "kubernetes.io/hostname"
+```
+可使用nodeSelector和affinity来控制novaServer Pod的调度，具体请参考Kubernetes文档。
+
+```yaml
+collector:
+  tolerations: []
+# - effect: NoExecute
+#   operator: Exists
+# - effect: NoSchedule
+#   operator: Exists
+```
+如果节点有自己的taints，会导致nova Pod无法调度到该节点，如果需要忽略taints，可以加上对应的tolerations。
+
+##### 更新策略
+```yaml
+collector:
+    updateStrategy:
+      type: RollingUpdate
+```
+可为`RollingUpdate`或者`OnDelete`。
+
+##### Collector全局配置
+```yaml
+{
+  "cluster": "default",
+  "company_uuid": "e902c1e84b9f9b12bdf22936603acfda",
+  "node_report_addr": {
+    "host": "81.71.98.26",
+    "port": 10050
+  },
+  "sampling_period": 2,
+  "oltp_exporter_addr": {
+    "host": "81.71.98.26",
+    "port": 4317
+  },
+  "k8s_cri_unix_domain_socket": "/run/containerd/containerd.sock",
+  "log_level": "debug",
+  "log_file": "/tmp/trace-agent.log",
+  "prometheus_exposer_addr": "0.0.0.0:8000"
+}
+```
+具体参数说明可参考[组件配置](../../reference/index.md)。
+
+
+#### Nova部署
+
+初次部署，我们指定部署在`nova` namespace下，并让helm自动创建该namespace。
 ```bash
-helm install loggie ./ -nloggie --create-namespace
+helm install nova ./ -nnova --create-namespace
 ```
 
-如果你的环境中已经创建了`loggie` namespace，可以忽略其中的`-nloggie`和`--create-namespace`参数。当然，你也可以使用自己的namespace，将其中`loggie`替换即可。  
-
-!!! caution "Kubernetes版本问题"
-    ```
-    failed to install CRD crds/crds.yaml: unable to recognize "": no matches for kind "CustomResourceDefinition" in version "apiextensions.k8s.io/v1"
-    ```
-    如果你在helm install的时候出现类似的问题，说明你的Kubernetes版本较低，不支持apiextensions.k8s.io/v1版本CRD。Loggie暂时保留了v1beta1版本的CRD，请删除charts中v1beta1版本，`rm loggie/crds/crds.yaml`，重新install。
+如果你的环境中已经创建了`nova` namespace，可以忽略其中的`-nnova`和`--create-namespace`参数。当然，你也可以使用自己的namespace，将其中`nova`替换即可。  
 
 
 ### 查看部署状态
 执行完后，通过使用helm命令来查看部署状态：
 ```
-helm list -nloggie
+helm list -nnova
 ```
 类似如下所示：
 ```
 NAME  	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART        	APP VERSION
-loggie	loggie   	1       	2021-11-30 18:06:16.976334232 +0800 CST	deployed	loggie-v0.1.0	v0.1.0
+nova	nova   	1       	2021-11-30 18:06:16.976334232 +0800 CST	deployed	nova-v0.1.0	v0.1.0
 ```
 
 同时也可以通过kubectl命令查看Pod是否已经被创建。  
 ```
-kubectl -nloggie get po
+kubectl -nnova get po
 ```
 类似如下所示：
 ```
-loggie-sxxwh   1/1     Running   0          5m21s   10.244.0.5   kind-control-plane   <none>           <none>
+nova-sxxwh   1/1     Running   0          5m21s   10.244.0.5   kind-control-plane   <none>           <none>
 ```
 
 
-
-## 部署Loggie Aggregator
-
-部署Aggregator基本和Agent一致，在helm chart中我们提供了默认注释掉的`Aggregator global config`部分，只需使用该配置同时去掉Agent的配置即可。  
-
-同时，请注意在values.yaml中根据情况增加：
-
-- nodeSelector或者affinity，根据node是否有污点增加tolerations。使得Aggregator DaemonSet只调度在某几个节点上
-- service增加接收的端口，比如使用Grpc source，需要填写默认的6066端口：
-  ```yaml
-  servicePorts:
-  - name: grpc
-    port: 6066
-    targetPort: 6066
-  ```
-- discovery.kubernetes中增加cluster字段，表示中转机集群名称，用于区别Agent或者其他的Loggie集群，如下所示：
-  ```yaml
-  config:
-    loggie:
-      discovery:
-        enabled: true
-        kubernetes:
-          cluster: aggregator
-  ```
-
-执行部署命令参考：
-```
-helm install loggie-aggregator ./ -nloggie-aggregator --create-namespace
-```
-
-!!! note
-    Loggie中转机同样可以使用Deployment或者StatefulSet来部署，请参考DaemonSet自行修改helm chart。
